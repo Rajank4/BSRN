@@ -1,0 +1,67 @@
+/* Global styles */
+
+App {
+  /* Set the background color of the app */
+  background-color: #f0f0f0;
+  /* Set the font family and size */
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+}
+
+/* Header styles */
+
+Header {
+  /* Set the background color of the header */
+  background-color: #333;
+  /* Set the text color of the header */
+  color: #fff;
+  /* Add some padding to the header */
+  padding: 10px;
+}
+
+/* Footer styles */
+
+Footer {
+  /* Set the background color of the footer */
+  background-color: #333;
+  /* Set the text color of the footer */
+  color: #fff;
+  /* Add some padding to the footer */
+  padding: 10px;
+}
+
+/* Bingo grid styles */
+
+BingoGrid {
+  /* Set the grid template columns and rows */
+  grid-template-columns: repeat({{ grid_columns }}, 1fr);
+  grid-template-rows: repeat({{ grid_rows }}, 1fr);
+  /* Add some gap between grid cells */
+  grid-gap: 10px;
+}
+
+/* Button styles */
+
+Button {
+  /* Set the background color of the button */
+  background-color: #fff;
+  /* Set the text color of the button */
+  color: #333;
+  /* Add some padding to the button */
+  padding: 10px;
+  /* Make the button rounded */
+  border-radius: 5px;
+  /* Add a hover effect to the button */
+  hover: {
+    background-color: #ccc;
+  }
+}
+
+/* Selected button styles */
+
+Button.selected {
+  /* Set the background color of the selected button */
+  background-color: #007bff;
+  /* Set the text color of the selected button */
+  color: #fff;
+}

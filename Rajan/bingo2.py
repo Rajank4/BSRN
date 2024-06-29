@@ -2,11 +2,11 @@ import random
 import argparse
 from textual.app import App
 from textual.widgets import Button, Header, Footer
-from textual.widget import Widget
+from textual.containers import Grid, Vertical
 
-class BingoGrid(Widget):
+
+class BingoGrid:
     def __init__(self, buzzwords, grid_columns, grid_rows):
-        super().__init__()
         self.buzzwords = buzzwords
         self.grid_columns = grid_columns
         self.grid_rows = grid_rows
@@ -14,15 +14,22 @@ class BingoGrid(Widget):
 
     def create_grid(self):
         used_words = set()
-        for _ in range(self.grid_columns * self.grid_rows):
-            while True:
-                word = random.choice(self.buzzwords)
-                if word not in used_words:
-                    used_words.add(word)
-                    break
-            button = Button(label=word)
-            button.on_click = lambda b=button: self.button_click(b)
-            self.mount(button)
+        rows = []
+        for _ in range(self.grid_rows):
+            row_buttons = []
+            for _ in range(self.grid_columns):
+                while True:
+                    word = random.choice(self.buzzwords)
+                    if word not in used_words:
+                        used_words.add(word)
+                        break
+                button = Button(label=word)
+                button.on_click = lambda b=button: self.button_click(b)
+                row_buttons.append(button)
+            row = Grid(*row_buttons)
+            rows.append(row)
+        grid = Vertical(*rows)
+        return grid
 
     def button_click(self, button):
         if button not in self.selected:
@@ -32,8 +39,6 @@ class BingoGrid(Widget):
             button.remove_class("selected")
             self.selected.remove(button)
 
-    async def on_mount(self):
-        self.create_grid()
 
 class BingoApp(App):
     CSS_PATH = ("styles.tcss")
@@ -50,16 +55,22 @@ class BingoApp(App):
         with open(self.buzzword_file, 'r') as file:
             return [line.strip() for line in file]
 
-    async def on_mount(self):
+    async def on_mount(self) -> None:
         buzzwords = self.load_buzzwords()
 
         header = Header()
         footer = Footer()
         bingo_grid = BingoGrid(buzzwords, self.grid_columns, self.grid_rows)
+        grid = bingo_grid.create_grid()
 
-        await self.mount(header)
-        await self.mount(footer)
-        await self.mount(bingo_grid)
+        main_view = Vertical(
+            header,
+            grid,
+            footer
+        )
+
+        await self.mount(main_view)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Buzzword Bingo Spiel")
@@ -79,6 +90,7 @@ def main():
         num_players=args.num_players
     )
     app.run()
+
 
 if __name__ == "__main__":
     main()
