@@ -1,0 +1,20 @@
+Grid {
+    grid-template-columns: repeat(5, 1fr); /* Define the number of columns */
+    gap: 5px; /* Define the gap between the grid items */
+    padding: 10px; /* Padding: top, right, bottom, left */
+}
+
+Button {
+    background: #000; /* Background color */
+    color: #fff; /* Text color */
+    border: 1px solid #333; /* Border type and color */
+    padding: 10px; /* Padding around the button */
+    text-align: center; /* Center-align text */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+Button:hover {
+    background: #333; /* Hover background color */
+    color: #fff; /* Hover text color */
+}
+
