@@ -8,15 +8,17 @@ class BingoButton(ttk.TTkButton):
         self.row = kwargs.pop('row')
         self.col = kwargs.pop('col')
         self.game = kwargs.pop('game')
+        self.buzzword = kwargs.pop('buzzword')
         super().__init__(*args, **kwargs)
         self.clicked.connect(self.on_click)
+        self.setText(self.buzzword)  # Initialize the text to the buzzword
 
     def on_click(self):
-        if self.text() == "":
+        if self.text() == self.buzzword:
             self.setText("X")
             self.game.marked[self.row][self.col] = True
         else:
-            self.setText("")
+            self.setText(self.buzzword)
             self.game.marked[self.row][self.col] = False
 
         if self.game.check_win():
@@ -65,7 +67,7 @@ def display_bingo_card(frame, card, game, rows, cols):
     grid_layout = frame.layout()
     for r in range(rows):
         for c in range(cols):
-            button = BingoButton(text=card[r * cols + c], row=r, col=c, game=game, border=True)
+            button = BingoButton(row=r, col=c, game=game, buzzword=card[r * cols + c], border=True)
             grid_layout.addWidget(button, row=r, col=c)
 
 def main():
