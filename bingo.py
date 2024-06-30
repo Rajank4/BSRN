@@ -5,72 +5,98 @@ import TermTk as ttk
 
 class BingoButton(ttk.TTkButton):
     def __init__(self, *args, **kwargs):
+        self.row = kwargs.pop('row')
+        self.col = kwargs.pop('col')
+        self.game = kwargs.pop('game')
+        self.buzzword = kwargs.pop('buzzword')
         super().__init__(*args, **kwargs)
         self.clicked.connect(self.on_click)
+        self.setText(self.buzzword)  # Initialize the text to the buzzword
 
     def on_click(self):
-        # Bei Klick den Button-Text markieren oder unmarkieren
-        if self.border():
-            self.setBorder(False)
-            self.setStyle(None)
+        if self.text() == self.buzzword:
+            self.setText("X")
+            self.game.marked[self.row][self.col] = True
         else:
-            self.setBorder(True)
-            self.setStyle(ttk.TTkColor.bg('#00FF00'))
+            self.setText(self.buzzword)
+            self.game.marked[self.row][self.col] = False
 
-# Funktion zum Einlesen der Buzzwords aus einer Datei
+        if self.game.check_win():
+            print(f"Spieler {self.game.current_player} hat gewonnen!")
+            ttk.TTkHelper.quit()
+
+class BingoGame:
+    def __init__(self, rows, cols, players):
+        self.rows = rows
+        self.cols = cols
+        self.players = players
+        self.current_player = 1
+        self.marked = [[False] * cols for _ in range(rows)]
+
+    def check_win(self):
+        for row in self.marked:
+            if all(row):
+                return True
+
+        for col in range(self.cols):
+            if all(self.marked[row][col] for row in range(self.rows)):
+                return True
+
+        if all(self.marked[i][i] for i in range(self.rows)):
+            return True
+
+        if all(self.marked[i][self.cols - i - 1] for i in range(self.rows)):
+            return True
+
+        return False
+
+    def switch_player(self):
+        self.current_player = (self.current_player % self.players) + 1
+
 def read_buzzwords(filename):
     with open(filename, 'r') as file:
         buzzwords = [line.strip() for line in file if line.strip()]
     return buzzwords
 
-# Funktion zum Erstellen einer zufälligen Bingo-Karte
 def generate_bingo_card(buzzwords, rows, cols):
     if len(buzzwords) < rows * cols:
         raise ValueError("Nicht genug Buzzwords für die Bingo-Karte")
     return random.sample(buzzwords, rows * cols)
 
-# Funktion zum Anzeigen der Bingo-Karte
-def display_bingo_card(frame, card, rows, cols):
+def display_bingo_card(frame, card, game, rows, cols):
     grid_layout = frame.layout()
     for r in range(rows):
         for c in range(cols):
-            button = BingoButton(text=card[r * cols + c], border=True)
+            button = BingoButton(row=r, col=c, game=game, buzzword=card[r * cols + c], border=True)
             grid_layout.addWidget(button, row=r, col=c)
 
-# Hauptfunktion
 def main():
-    # Kommandozeilenargumente parsen
     parser = argparse.ArgumentParser(description="Buzzword Bingo")
     parser.add_argument("file", help="Datei mit Buzzwords")
     parser.add_argument("rows", type=int, help="Anzahl der Zeilen der Bingo-Karte")
     parser.add_argument("cols", type=int, help="Anzahl der Spalten der Bingo-Karte")
     parser.add_argument("players", type=int, help="Anzahl der Spieler")
-
     args = parser.parse_args()
 
-    # Buzzwords einlesen
     buzzwords = read_buzzwords(args.file)
 
-    # GUI initialisieren
     root = ttk.TTk()
     root.setLayout(ttk.TTkGridLayout())
 
-    # Für jeden Spieler eine Bingo-Karte generieren und anzeigen
+    game = BingoGame(args.rows, args.cols, args.players)
+
     for player in range(args.players):
         player_frame = ttk.TTkFrame(title=f"Spieler {player + 1} Bingo-Karte:", layout=ttk.TTkGridLayout())
         card = generate_bingo_card(buzzwords, args.rows, args.cols)
-        display_bingo_card(player_frame, card, args.rows, args.cols)
+        display_bingo_card(player_frame, card, game, args.rows, args.cols)
         root.layout().addWidget(player_frame, row=player, col=0)
 
-    button = BingoButton(text="Beenden", border=True, command=ttk.TTkHelper.quit)
+    button = ttk.TTkButton(text="Beenden", border=True, command=ttk.TTkHelper.quit)
     root.layout().addWidget(button, row=args.players, col=0)
 
     root.mainloop()
 
 if __name__ == "__main__":
     main()
-
-
-
 
 #python3 bingo.py buzzwords.txt 3 3 2
