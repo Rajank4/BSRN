@@ -1,0 +1,18 @@
+Schritt 1:
+Ubuntu-Terminal öffen und via. cd-Befehl in den richtigen Ordner/Path (BSRN-Projekt) gelangt
+#cd BSRN-Projekt
+
+Schritt 2:
+Im selben Ubuntu-Terminal das Python-Script `server.py` ausführen, welches den Server startet.
+#python3 server.py
+
+Schritt 3:
+Weitere Ubuntu-Terminals öffnen und das Python-Script `client.py` mithilfe von Args-Argumenten ausführen, um Clients/Spieler dem Server joinen zu lassen.
+
+Ubuntu-Terminal 2 Eingabe: (Sofern sich alle Dateien im selben Ordner befinden)
+#python3 client.py SpielerName1 Buzzword_Datei Log_datei Anzahl_Zeilen Anzahl_Spalten "Titel des Buzzword Bingo"
+
+Ubuntu-Terminal 3 Eingabe:(Sofern sich alle Dateien im selben Ordner befinden)
+#python3 client.py SpielerName2 Buzzword_Datei Log_datei Anzahl_Zeilen Anzahl_Spalten "Titel des Buzzword Bingo"
+
+Schritt 4: Buzzword_Bingo miteinander Spielen und Spaß haben! 

@@ -14,16 +14,15 @@ from TermTk.TTkWidgets.window import TTkWindow
 from TermTk.TTkWidgets.frame import TTkFrame
 from TermTk.TTkLayouts.gridlayout import TTkGridLayout
 
-# Globale Variable für den Spielstatus
 spiel_status = {
-    'board': [[None for _ in range(5)] for _ in range(5)],  # Beispiel: 5x5 Bingo-Board
+    'board': None,
     'winner': None
 }
 
 class CustomTTkButton(TTkButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.is_joker = False  # Flag, um zu identifizieren, ob dieser Button ein Joker ist
+        self.is_joker = False
 
     def setBgColor(self, color):
         self.style()['default']['bg'] = TTkColor.fg(color) if color else None
@@ -32,16 +31,15 @@ class CustomTTkButton(TTkButton):
     def setJoker(self, is_joker):
         self.is_joker = is_joker
         if is_joker:
-            self.setChecked(True)  # Joker als ausgewählt markieren
-            self.setEnabled(False)  # Joker-Button deaktivieren
-            self.setBgColor(color='#87feff')  # Hintergrundfarbe für Joker setzen
+            self.setChecked(True)
+            self.setEnabled(False)
+            self.setBgColor(color='#87feff')
         else:
-            self.setChecked(False)  # Stellen Sie sicher, dass der Joker-Button nicht ausgewählt ist
-            self.setEnabled(True)  # Button aktivieren, falls kein Joker
-
+            self.setChecked(False)
+            self.setEnabled(True)
 
 class GameClient:
-    def __init__(self, host='127.0.0.1', port=65432):
+    def __init__(self, host='127.0.0.1', port=65433):
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,7 +60,6 @@ class GameClient:
     def register_callback(self, callback):
         self.callbacks.append(callback)
 
-
 class StartPage:
     def __init__(self, root, title, client, spielername):
         self.root = root
@@ -72,12 +69,10 @@ class StartPage:
         self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(70, 10), title=self.title,
                                 layout=TTkGridLayout())
 
-        # Willkommenslabel
         welcome_label = TTkLabel(parent=self.window, text="Willkommen zum Buzzword Bingo!",
                                  alignment=ttk.TTkK.CENTER)
         self.window.layout().addWidget(welcome_label, 0, 0)
 
-        # Buttons
         button_frame = TTkFrame(parent=self.window, border=False, layout=TTkGridLayout(), size=(70, 5))
         start_button = CustomTTkButton(border=True, text="Spiel starten", checkable=True)
         start_button.clicked.connect(self.start_game)
@@ -114,7 +109,6 @@ class StartPage:
         self.client.send({'action': 'exit'})
         sys.exit(0)
 
-
 class GamePage:
     def __init__(self, root, client, spielername, roundfile, log_path, zeilen, spalten, titel):
         self.client = client
@@ -129,11 +123,10 @@ class GamePage:
         self.buzzwords = self.read_buzzword(self.roundfile)
         self.used_buzzwords = set()
 
-        self.log_file = self.create_log_file()  # Log-Datei erstellen
-
+        self.log_file = self.create_log_file()
         self.root = root
-        window_width = spalten * 12 + 10  # Breite anpassen basierend auf den Spalten
-        window_height = zeilen * 3 + 10   # Höhe anpassen basierend auf den Zeilen
+        window_width = spalten * 12 + 10
+        window_height = zeilen * 3 + 10
         self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(window_width, window_height), title=self.titel,
                                 layout=TTkGridLayout())
 
@@ -163,16 +156,12 @@ class GamePage:
         sys.exit(0)
 
     def check_win(self, row, col, checked):
-        # Überprüfen, ob eine Zeile vollständig markiert ist
         if all(self.buttons[row][j].isChecked() for j in range(self.spalten)):
             return True
-        # Überprüfen, ob eine Spalte vollständig markiert ist
         if all(self.buttons[i][col].isChecked() for i in range(self.zeilen)):
             return True
-        # Überprüfen, ob die Hauptdiagonale vollständig markiert ist
         if row == col and all(self.buttons[i][i].isChecked() for i in range(self.zeilen)):
             return True
-        # Überprüfen, ob die Nebendiagonale vollständig markiert ist
         if row + col == self.zeilen - 1 and all(self.buttons[i][self.spalten - 1 - i].isChecked() for i in range(self.zeilen)):
             return True
         return False
@@ -189,10 +178,10 @@ class GamePage:
                 f"{now.strftime('%H:%M:%S')} - {self.spielername} hat das folgende Feld rückgängig gemacht: Zeile {row + 1}, Spalte {col + 1}, Wort: {button_text}")
             button.setBgColor(None)
 
-        if self.check_win(row, col, button.isChecked()):  # Überprüfen, ob das Spiel gewonnen wurde
-            spiel_status['winner'] = self.spielername  # Gewinner setzen
+        if self.check_win(row, col, button.isChecked()):
+            spiel_status['winner'] = self.spielername
             self.client.send({'action': 'update_state', 'board': [[btn.isChecked() for btn in row] for row in self.buttons], 'winner': self.spielername})
-            self.show_winner()  # Gewinnermeldung anzeigen
+            self.show_winner()
 
     def show_winner(self):
         winner_window = TTkWindow(parent=self.root, pos=(10, 10), size=(50, 10), title="Gewinner!",
@@ -211,7 +200,6 @@ class GamePage:
         winner_window.raiseWidget()
 
     def update_game_state(self, state):
-        # Überprüfen, ob der Schlüssel 'board' im empfangenen Zustand vorhanden ist
         if 'board' in state:
             for i in range(self.zeilen):
                 for j in range(self.spalten):
@@ -223,11 +211,9 @@ class GamePage:
             self.show_winner()
 
     def setup_game(self):
-        # Variablen initialisieren, um die Joker-Platzierung zu verfolgen
         joker_row = -1
         joker_col = -1
 
-        # Überprüfen, ob die Rastergröße ungerade und >= 5x5 ist, um den Joker zu platzieren
         if self.zeilen >= 5 and self.spalten >= 5 and self.zeilen % 2 != 0 and self.spalten % 2 != 0:
             joker_row = self.zeilen // 2
             joker_col = self.spalten // 2
@@ -236,9 +222,8 @@ class GamePage:
             for j in range(self.spalten):
                 if i == joker_row and j == joker_col:
                     buzzword = "Joker"
-                    # Einen nicht anklickbaren Joker-Button erstellen
                     btn = CustomTTkButton(border=True, text=buzzword, checkable=True)
-                    btn.setJoker(True)  # Diesen Button als Joker markieren
+                    btn.setJoker(True)
                 else:
                     buzzword = random.choice(self.buzzwords).strip()
                     while buzzword in self.used_buzzwords:
@@ -253,7 +238,6 @@ class GamePage:
         close_button.clicked.connect(self.spiel_beenden)
         self.window.layout().addWidget(close_button, self.zeilen, self.spalten - 1)
 
-
 def main():
     root = ttk.TTk()
     if len(sys.argv) != 7:
@@ -266,7 +250,6 @@ def main():
     threading.Thread(target=client.receive).start()
     StartPage(root, titel, client, spielername)
     root.mainloop()
-
 
 if __name__ == "__main__":
     main()
