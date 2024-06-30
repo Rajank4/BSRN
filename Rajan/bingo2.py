@@ -17,12 +17,13 @@ class CustomTTkButton(TTkButton):
         self.style()['default']['bg'] = TTkColor.fg(color) if color else None
         self.update()
 
+
 class StartPage:
     def __init__(self, root, title):
         self.root = root
         self.title = title
         self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(70, 10), title=self.title,
-                                    layout=TTkGridLayout())
+                                layout=TTkGridLayout())
 
         # Welcome Label
         welcome_label = TTkLabel(parent=self.window, text="Willkommen zum Buzzword Bingo!",
@@ -58,10 +59,10 @@ class StartPage:
         GamePage(self.root, spielername, roundfile, log_path, zeilen, spalten, titel)
 
     def spiel_beenden(self):
-            now = datetime.now()
-            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Abbruch des Spiels von der Startseite aus")
-            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Ende des Spiels von der Startseite aus")
-            sys.exit(0)
+        now = datetime.now()
+        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Abbruch des Spiels von der Startseite aus")
+        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Ende des Spiels von der Startseite aus")
+        sys.exit(0)
 
 
 class GamePage:
@@ -81,7 +82,8 @@ class GamePage:
         self.root = root
         window_width = spalten * 12 + 10  # Adjust width based on columns
         window_height = zeilen * 3 + 10   # Adjust height based on rows
-        self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(window_width, window_height), title=self.titel, layout=TTkGridLayout())
+        self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(window_width, window_height), title=self.titel,
+                                layout=TTkGridLayout())
 
         self.buttons = [[None for _ in range(self.spalten)] for _ in range(self.zeilen)]
 
@@ -108,59 +110,81 @@ class GamePage:
         sys.exit(0)
 
     def check_win(self):
+        # Check if all buttons in any row, column, or diagonal are checked
         for i in range(self.zeilen):
-            if all(self.buttons[i][j].isChecked() for j in range(self.spalten)):
+            if all(self.buttons[i][j].isChecked() for j in range(self.spalten) if self.buttons[i][j]):
                 return True
+
         for j in range(self.spalten):
-            if all(self.buttons[i][j].isChecked() for i in range(self.zeilen)):
+            if all(self.buttons[i][j].isChecked() for i in range(self.zeilen) if self.buttons[i][j]):
                 return True
-        if all(self.buttons[i][i].isChecked() for i in range(min(self.zeilen, self.spalten))):
+
+        if all(self.buttons[i][i].isChecked() for i in range(min(self.zeilen, self.spalten)) if self.buttons[i][i]):
             return True
-        if all(self.buttons[i][self.spalten - 1 - i].isChecked() for i in range(min(self.zeilen, self.spalten))):
+
+        if all(self.buttons[i][self.spalten - 1 - i].isChecked() for i in range(min(self.zeilen, self.spalten)) if self.buttons[i][self.spalten - 1 - i]):
             return True
+
         return False
 
     def log_buzzword(self, button, row, col):
         now = datetime.now()
         button_text = button.text()
         if button.isChecked():
-            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button geklickt: {button_text}  (Zeile: {row + 1}, Spalte: {col + 1})")
+            logging.info(
+                f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button geklickt: {button_text}  (Zeile: {row + 1}, Spalte: {col + 1})")
             button.setBgColor('#88ffff')
         else:
-            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button rückgängig: {button_text} (Zeile: {row + 1}, Spalte: {col + 1})")
+            logging.info(
+                f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button rückgängig: {button_text} (Zeile: {row + 1}, Spalte: {col + 1})")
             button.setBgColor(None)
+
         if self.check_win():
             self.show_winner()
 
     def show_winner(self):
-        winner_window = TTkWindow(parent=self.root, pos=(10, 10), size=(50, 10), title="Gewinner!", layout=TTkGridLayout())
-        winner_label = TTkLabel(parent=winner_window, text=f"Herzlichen Glückwunsch, {self.spielername}!", alignment=ttk.TTkK.CENTER)
-        winner_window.layout().addWidget(winner_label, 0, 0, colspan=2)
+        # Check if there is a winner before showing the winner window
+        if self.check_win():
+            winner_window = TTkWindow(parent=self.root, pos=(10, 10), size=(50, 10), title="Gewinner!",
+                                      layout=TTkGridLayout())
+            winner_label = TTkLabel(parent=winner_window, text=f"Herzlichen Glückwunsch, {self.spielername}!",
+                                    alignment=ttk.TTkK.CENTER)
+            winner_window.layout().addWidget(winner_label, 0, 0, colspan=2)
 
-        close_button = CustomTTkButton(border=True, text="Spiel beenden", checkable=True)
-        close_button.clicked.connect(self.spiel_beenden)
-        winner_window.layout().addWidget(close_button, 1, 0, colspan=2)
+            close_button = CustomTTkButton(border=True, text="Spiel beenden", checkable=True)
+            close_button.clicked.connect(self.spiel_beenden)
+            winner_window.layout().addWidget(close_button, 1, 0, colspan=2)
 
-        self.root.addWidget(winner_window)
-        winner_window.raiseWidget()
+            self.root.addWidget(winner_window)
+            winner_window.raiseWidget()
 
     def setup_game(self):
+        # Initialize variables to track the Joker placement
+        joker_row = -1
+        joker_col = -1
+
+        # Check if the grid size is odd and >= 5x5 to place the Joker
+        if self.zeilen >= 5 and self.spalten >= 5 and self.zeilen % 2 != 0 and self.spalten % 2 != 0:
+            joker_row = self.zeilen // 2
+            joker_col = self.spalten // 2
+
         for i in range(self.zeilen):
             for j in range(self.spalten):
-                if self.zeilen % 2 != 0 and self.spalten % 2 != 0 and i == self.zeilen // 2 and j == self.spalten // 2:
-                    btn = CustomTTkButton(border=True, text="Joker", checkable=True)
+                if i == joker_row and j == joker_col:
+                    buzzword = "Joker"
+                    # Create a non-clickable Joker button
+                    btn = CustomTTkButton(border=True, text=buzzword, checkable=True)
+                    btn.setChecked(True)  # Automatically mark the Joker as clicked
                     btn.setBgColor(color='#ff88ff')
-                    self.window.layout().addWidget(btn, i, j)
-                    self.buttons[i][j] = btn
                 else:
                     buzzword = random.choice(self.buzzwords).strip()
                     while buzzword in self.used_buzzwords:
                         buzzword = random.choice(self.buzzwords).strip()
-                    self.used_buzzwords.add(buzzword)
                     btn = CustomTTkButton(border=True, text=buzzword, checkable=True)
                     btn.clicked.connect(lambda b=btn, row=i, col=j: self.log_buzzword(b, row, col))
-                    self.window.layout().addWidget(btn, i, j)
-                    self.buttons[i][j] = btn
+
+                self.window.layout().addWidget(btn, i, j)
+                self.buttons[i][j] = btn
 
         close_button = CustomTTkButton(border=True, text="Spiel beenden", checkable=True)
         close_button.clicked.connect(self.spiel_beenden)
@@ -179,3 +203,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+#python3 bingo.py Rajan buzzwords.txt logs 5 5 "Rajans&Ritas Buzzword Bingo"

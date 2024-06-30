@@ -77,7 +77,7 @@ class GamePage:
         self.buzzwords = self.read_buzzword(self.roundfile)
         self.used_buzzwords = set()
 
-        self.create_log_file()
+        self.log_file = self.create_log_file()  # Create log file object
 
         self.root = root
         window_width = spalten * 12 + 10  # Adjust width based on columns
@@ -92,11 +92,12 @@ class GamePage:
     def create_log_file(self):
         os.makedirs(self.log_path, exist_ok=True)
         now = datetime.now()
-        date_string = now.strftime("%Y-%m-%d")
+        date_string = now.strftime("%Y-%m-%d-%H-%M-%S")
         log_file_name = os.path.join(self.log_path, f"log-{date_string}-{self.spielername}.txt")
-        logging.basicConfig(filename=log_file_name, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-        logging.info(f"Log-Datei für {self.spielername} erstellt.")
-        logging.info(f"Größe des Spielfelds Zeilen: {self.zeilen}, Spalten: {self.spalten}")
+        logging.basicConfig(filename=log_file_name, level=logging.INFO, format='%(asctime)s - %(message)s')
+        logging.info(f"Spiel gestartet von {self.spielername} - {self.zeilen}x{self.spalten}")
+
+        return logging.getLogger(log_file_name)
 
     def read_buzzword(self, roundfile):
         with open(roundfile, 'r', encoding='utf-8') as f:
@@ -105,8 +106,8 @@ class GamePage:
 
     def spiel_beenden(self):
         now = datetime.now()
-        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Abbruch des Spiels von der Spielseite aus")
-        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Ende des Spiels von der Spielseite aus")
+        logging.info(f"Ende des Spiels - {self.spielername} hat gewonnen!")
+        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Spiel beendet")
         sys.exit(0)
 
     def check_win(self):
@@ -131,12 +132,12 @@ class GamePage:
         now = datetime.now()
         button_text = button.text()
         if button.isChecked():
-            logging.info(
-                f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button geklickt: {button_text}  (Zeile: {row + 1}, Spalte: {col + 1})")
+            self.log_file.info(
+                f"{now.strftime('%H:%M:%S')} - {self.spielername} hat das folgende Feld ausgewählt: Zeile {row + 1}, Spalte {col + 1}, Wort: {button_text}")
             button.setBgColor('#88ffff')
         else:
-            logging.info(
-                f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button rückgängig: {button_text} (Zeile: {row + 1}, Spalte: {col + 1})")
+            self.log_file.info(
+                f"{now.strftime('%H:%M:%S')} - {self.spielername} hat das folgende Feld rückgängig gemacht: Zeile {row + 1}, Spalte {col + 1}, Wort: {button_text}")
             button.setBgColor(None)
 
         if self.check_win():
