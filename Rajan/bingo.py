@@ -2,25 +2,26 @@ import os
 import sys
 import logging
 import random
-import time
 from datetime import datetime
 import TermTk as ttk
 from TermTk.TTkCore.color import TTkColor
 from TermTk.TTkWidgets.button import TTkButton
+
 
 class CustomTTkButton(TTkButton):
     def setBgColor(self, color):
         self.style()['default']['bg'] = TTkColor.fg(color) if color else None
         self.update()
 
+
 class StartPage:
     def __init__(self, root):
         self.root = root
-        self.window = ttk.TTkWindow(parent=self.root, pos=(1,1), size=(70,30), title="Buzzword Bingo :)")
+        self.window = ttk.TTkWindow(parent=self.root, pos=(1, 1), size=(70, 30), title="Buzzword Bingo :)")
         self.winLayout = ttk.TTkGridLayout()
         self.window.setLayout(self.winLayout)
 
-        welcome_label = ttk.TTkLabel(parent=self.window, pos=(1,1), text="Willkommen zum Buzzword Bingo!", font=("Times New Roman", 24))
+        welcome_label = ttk.TTkLabel(parent=self.window, pos=(1, 1), text="Willkommen zum Buzzword Bingo!", font=("Times New Roman", 24))
         self.winLayout.addWidget(welcome_label, 0, 0, colspan=2)
 
         start_button = CustomTTkButton(border=True, text="Spiel starten", font=("Times New Roman", 24), checkable=True)
@@ -51,6 +52,7 @@ class StartPage:
         logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Ende des Spiels von der Startseite aus")
         sys.exit(0)
 
+
 class GamePage:
     def __init__(self, root, spielername, roundfile, log_path, zeilen, spalten):
         self.spielername = spielername
@@ -65,7 +67,7 @@ class GamePage:
         self.create_log_file()
 
         self.root = root
-        self.window = ttk.TTkWindow(parent=self.root, pos=(1,1), size=(70,30), title="Buzzword Bingo :)")
+        self.window = ttk.TTkWindow(parent=self.root, pos=(1, 1), size=(70, 30), title="Buzzword Bingo :)")
         self.winLayout = ttk.TTkGridLayout()
         self.window.setLayout(self.winLayout)
 
@@ -102,7 +104,7 @@ class GamePage:
                 return True
         if all(self.buttons[i][i].isChecked() for i in range(min(self.zeilen, self.spalten))):
             return True
-        if all(self.buttons[i][self.spalten-1-i].isChecked() for i in range(min(self.zeilen, self.spalten))):
+        if all(self.buttons[i][self.spalten - 1 - i].isChecked() for i in range(min(self.zeilen, self.spalten))):
             return True
         return False
 
@@ -110,26 +112,29 @@ class GamePage:
         now = datetime.now()
         button_text = button.text()
         if button.isChecked():
-            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button geklickt: {button_text}  (Zeile: {row+1}, Spalte: {col+1})")
+            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button geklickt: {button_text}  (Zeile: {row + 1}, Spalte: {col + 1})")
             button.setBgColor('#88ffff')
         else:
-            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button rückgängig: {button_text} ( Zeile: {row+1}, Spalte: {col+1})")
+            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button rückgängig: {button_text} (Zeile: {row + 1}, Spalte: {col + 1})")
             button.setBgColor(None)
         if self.check_win():
             self.show_winner()
-            self.spiel_beenden()
 
     def show_winner(self):
-        winner_window = ttk.TTkWindow(parent=self.root, pos=(1,1), size=(50,10), title="Gewinner!")
+        winner_window = ttk.TTkWindow(parent=self.root, pos=(10, 10), size=(50, 10), title="Gewinner!")
         winner_layout = ttk.TTkGridLayout()
         winner_window.setLayout(winner_layout)
 
-        winner_label = ttk.TTkLabel(parent=winner_window, pos=(1,1), text=f"Herzlichen Glückwunsch, {self.spielername}!")
+        winner_label = ttk.TTkLabel(parent=winner_window, text=f"Herzlichen Glückwunsch, {self.spielername}!")
         winner_layout.addWidget(winner_label, 0, 0, colspan=2)
 
         close_button = CustomTTkButton(border=True, text="Spiel beenden", font=("Times New Roman", 24), checkable=True)
         close_button.clicked.connect(self.spiel_beenden)
         winner_layout.addWidget(close_button, 1, 0, colspan=2)
+
+        # Ensure the winner window is shown on top
+        self.root.addWidget(winner_window)
+        winner_window.raiseWidget()
 
     def setup_game(self):
         for i in range(self.zeilen):
@@ -151,12 +156,17 @@ class GamePage:
 
         close_button = CustomTTkButton(border=True, text="Spiel beenden", font=("Times New Roman", 24), checkable=True)
         close_button.clicked.connect(self.spiel_beenden)
-        self.winLayout.addWidget(close_button, self.zeilen, self.spalten-1)
+        self.winLayout.addWidget(close_button, self.zeilen, self.spalten - 1)
+
 
 def main():
     root = ttk.TTk()
     StartPage(root)
     root.mainloop()
 
+
 if __name__ == "__main__":
     main()
+
+
+#python3 bingo.py Rajan buzzwords.txt logs 3 3

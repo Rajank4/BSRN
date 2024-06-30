@@ -1,67 +1,79 @@
-/* Global styles */
 
-App {
-  /* Set the background color of the app */
-  background-color: #f0f0f0;
-  /* Set the font family and size */
-  font-family: Arial, sans-serif;
-  font-size: 16px;
+.bingo-grid {
+    layout: grid;
+    border: dodgerblue;
+
+
 }
 
-/* Header styles */
-
-Header {
-  /* Set the background color of the header */
-  background-color: #333;
-  /* Set the text color of the header */
-  color: #fff;
-  /* Add some padding to the header */
-  padding: 10px;
+.bingo-button.strikethrough{
+    text-style: strike;
+    background: red;
+    border: grey;
+    link-background-hover: red;
+}
+.bingo-button.strikethrough:hover {
+    background: darkred;
 }
 
-/* Footer styles */
-
-Footer {
-  /* Set the background color of the footer */
-  background-color: #333;
-  /* Set the text color of the footer */
-  color: #fff;
-  /* Add some padding to the footer */
-  padding: 10px;
+Horizontal > VerticalScroll {
+    width: 24;
 }
 
-/* Bingo grid styles */
-
-BingoGrid {
-  /* Set the grid template columns and rows */
-  grid-template-columns: repeat({{ grid_columns }}, 1fr);
-  grid-template-rows: repeat({{ grid_rows }}, 1fr);
-  /* Add some gap between grid cells */
-  grid-gap: 10px;
+.Joker{
+    text-style: strike;
+    background: red;
+    border: grey;
+    width: 100%;
+    align-horizontal: center;
+    min-width: 5;
+    min-height:5;
 }
 
-/* Button styles */
 
-Button {
-  /* Set the background color of the button */
-  background-color: #fff;
-  /* Set the text color of the button */
-  color: #333;
-  /* Add some padding to the button */
-  padding: 10px;
-  /* Make the button rounded */
-  border-radius: 5px;
-  /* Add a hover effect to the button */
-  hover: {
-    background-color: #ccc;
-  }
+.bingoconf{
+    background: yellow;
+    width: 20%;
+    border: black;
+    min-width: 5;
+    min-height:5;
 }
 
-/* Selected button styles */
+.bingoconf:hover {
+    background: rgb(255,185,15);
 
-Button.selected {
-  /* Set the background color of the selected button */
-  background-color: #007bff;
-  /* Set the text color of the selected button */
-  color: #fff;
 }
+
+.bingo-button{
+    background: green;
+    width: 100%;
+    align-horizontal: center;
+    border: black;
+    link-color-hover: yellow;
+    min-width: 5;
+    min-height:5;
+}
+
+.bingo-button:hover {
+    background: #316d33;
+
+}
+.quit-button{
+    background: red;
+    margin-top: 1;
+    width: 20%;
+    border: black;
+    min-width: 5;
+    min-height:5;
+}
+
+.quit-button:hover {
+    background: darkred;
+}
+
+.header {
+    background: grey;
+    height: 3;
+
+}
+
