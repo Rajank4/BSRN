@@ -1,2 +1,0 @@
-cd Rajan
-python3 bingo2.py --buzzword_file buzzwords.txt --grid_columns 3 --grid_rows 3 --player_name A --num_players 2
