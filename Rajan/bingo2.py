@@ -13,9 +13,23 @@ from TermTk.TTkLayouts.gridlayout import TTkGridLayout
 
 
 class CustomTTkButton(TTkButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_joker = False  # Flag to identify if this button is a Joker
+
     def setBgColor(self, color):
         self.style()['default']['bg'] = TTkColor.fg(color) if color else None
         self.update()
+
+    def setJoker(self, is_joker):
+        self.is_joker = is_joker
+        if is_joker:
+            self.setChecked(True)  # Automatically mark the Joker as checked
+            self.setEnabled(False)  # Disable the Joker button
+            self.setBgColor(color='#87feff')  # Set background color for the Joker
+        else:
+            self.setChecked(False)  # Ensure the Joker button starts unchecked
+            self.setEnabled(True)  # Enable the button if it's not a Joker
 
 
 class StartPage:
@@ -77,7 +91,7 @@ class GamePage:
         self.buzzwords = self.read_buzzword(self.roundfile)
         self.used_buzzwords = set()
 
-        self.create_log_file()
+        self.log_file = self.create_log_file()  # Create log file object
 
         self.root = root
         window_width = spalten * 12 + 10  # Adjust width based on columns
@@ -92,11 +106,12 @@ class GamePage:
     def create_log_file(self):
         os.makedirs(self.log_path, exist_ok=True)
         now = datetime.now()
-        date_string = now.strftime("%Y-%m-%d")
+        date_string = now.strftime("%Y-%m-%d-%H-%M-%S")
         log_file_name = os.path.join(self.log_path, f"log-{date_string}-{self.spielername}.txt")
-        logging.basicConfig(filename=log_file_name, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-        logging.info(f"Log-Datei für {self.spielername} erstellt.")
-        logging.info(f"Größe des Spielfelds Zeilen: {self.zeilen}, Spalten: {self.spalten}")
+        logging.basicConfig(filename=log_file_name, level=logging.INFO, format='%(asctime)s - %(message)s')
+        logging.info(f"Spiel gestartet von {self.spielername} - {self.zeilen}x{self.spalten}")
+
+        return logging.getLogger(log_file_name)
 
     def read_buzzword(self, roundfile):
         with open(roundfile, 'r', encoding='utf-8') as f:
@@ -105,8 +120,8 @@ class GamePage:
 
     def spiel_beenden(self):
         now = datetime.now()
-        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Abbruch des Spiels von der Spielseite aus")
-        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Ende des Spiels von der Spielseite aus")
+        logging.info(f"Ende des Spiels - {self.spielername} hat gewonnen!")
+        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Spiel beendet")
         sys.exit(0)
 
     def check_win(self):
@@ -131,32 +146,36 @@ class GamePage:
         now = datetime.now()
         button_text = button.text()
         if button.isChecked():
-            logging.info(
-                f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button geklickt: {button_text}  (Zeile: {row + 1}, Spalte: {col + 1})")
-            button.setBgColor('#88ffff')
+            self.log_file.info(
+                f"{now.strftime('%H:%M:%S')} - {self.spielername} hat das folgende Feld ausgewählt: Zeile {row + 1}, Spalte {col + 1}, Wort: {button_text}")
+            button.setBgColor('#87feff')
         else:
-            logging.info(
-                f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Button rückgängig: {button_text} (Zeile: {row + 1}, Spalte: {col + 1})")
+            self.log_file.info(
+                f"{now.strftime('%H:%M:%S')} - {self.spielername} hat das folgende Feld rückgängig gemacht: Zeile {row + 1}, Spalte {col + 1}, Wort: {button_text}")
             button.setBgColor(None)
 
-        if self.check_win():
-            self.show_winner()
+        if self.check_win():  # Check if the game has been won
+            self.show_winner()  # Display the winner message
 
     def show_winner(self):
         # Check if there is a winner before showing the winner window
         if self.check_win():
             winner_window = TTkWindow(parent=self.root, pos=(10, 10), size=(50, 10), title="Gewinner!",
                                       layout=TTkGridLayout())
-            winner_label = TTkLabel(parent=winner_window, text=f"Herzlichen Glückwunsch, {self.spielername}!",
-                                    alignment=ttk.TTkK.CENTER)
-            winner_window.layout().addWidget(winner_label, 0, 0, colspan=2)
+            winner_label = TTkLabel(parent=winner_window)
+            winner_label.setText(f"Herzlichen Glückwunsch, {self.spielername}!")
+            winner_label.setAlignment(ttk.TTkK.CENTER)
+
+            winner_window.layout().addWidget(winner_label, 0, 0, rowspan=2)
 
             close_button = CustomTTkButton(border=True, text="Spiel beenden", checkable=True)
             close_button.clicked.connect(self.spiel_beenden)
             winner_window.layout().addWidget(close_button, 1, 0, colspan=2)
 
             self.root.addWidget(winner_window)
-            winner_window.raiseWidget()
+            winner_window.raiseWidget()  # Bring the winner window to the top
+            winner_window.update()
+            self.root.update()
 
     def setup_game(self):
         # Initialize variables to track the Joker placement
@@ -174,8 +193,7 @@ class GamePage:
                     buzzword = "Joker"
                     # Create a non-clickable Joker button
                     btn = CustomTTkButton(border=True, text=buzzword, checkable=True)
-                    btn.setChecked(True)  # Automatically mark the Joker as clicked
-                    btn.setBgColor(color='#ff88ff')
+                    btn.setJoker(True)  # Mark this button as a Joker
                 else:
                     buzzword = random.choice(self.buzzwords).strip()
                     while buzzword in self.used_buzzwords:
@@ -203,6 +221,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-#python3 bingo.py Rajan buzzwords.txt logs 5 5 "Rajans&Ritas Buzzword Bingo"
