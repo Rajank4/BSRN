@@ -17,16 +17,17 @@ class CustomTTkButton(TTkButton):
         self.style()['default']['bg'] = TTkColor.fg(color) if color else None
         self.update()
 
-
 class StartPage:
-    def __init__(self, root):
+    def __init__(self, root, title):
         self.root = root
-        self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(70, 30), title="Buzzword Bingo :)", layout=TTkGridLayout())
+        self.title = title
+        self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(70, 10), title=self.title,
+                                    layout=TTkGridLayout())
 
         # Welcome Label
-        welcome_frame = TTkFrame(parent=self.window, border=False, layout=TTkGridLayout())
-        welcome_label = TTkLabel(parent=welcome_frame, text="Willkommen zum Buzzword Bingo!", alignment=ttk.TTkK.CENTER)
-        welcome_frame.layout().addWidget(welcome_label, 0, 0)
+        welcome_label = TTkLabel(parent=self.window, text="Willkommen zum Buzzword Bingo!",
+                                 alignment=ttk.TTkK.CENTER)
+        self.window.layout().addWidget(welcome_label, 0, 0)
 
         # Buttons
         button_frame = TTkFrame(parent=self.window, border=False, layout=TTkGridLayout(), size=(70, 5))
@@ -38,13 +39,13 @@ class StartPage:
         close_button.clicked.connect(self.spiel_beenden)
         button_frame.layout().addWidget(close_button, 0, 1)
 
-        self.window.layout().addWidget(welcome_frame, 0, 0, colspan=2)
         self.window.layout().addWidget(button_frame, 1, 0, colspan=2)
 
     def start_game(self):
         self.window.close()
-        if len(sys.argv) != 6:
-            print("Bitte geben Sie die notwendigen Argumente ein: [Spielername] [Pfad zur Buzzwords-Datei] [Log-Datei Speicherort] [Anzahl Zeilen] [Anzahl Spalten]")
+        if len(sys.argv) != 7:
+            print(
+                "Bitte geben Sie die notwendigen Argumente ein: [Spielername] [Pfad zur Buzzwords-Datei] [Log-Datei Speicherort] [Anzahl Zeilen] [Anzahl Spalten] [Titel]")
             sys.exit(1)
 
         spielername = sys.argv[1]
@@ -52,23 +53,25 @@ class StartPage:
         log_path = sys.argv[3]
         zeilen = int(sys.argv[4])
         spalten = int(sys.argv[5])
+        titel = sys.argv[6]
 
-        GamePage(self.root, spielername, roundfile, log_path, zeilen, spalten)
+        GamePage(self.root, spielername, roundfile, log_path, zeilen, spalten, titel)
 
     def spiel_beenden(self):
-        now = datetime.now()
-        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Abbruch des Spiels von der Startseite aus")
-        logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Ende des Spiels von der Startseite aus")
-        sys.exit(0)
+            now = datetime.now()
+            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Abbruch des Spiels von der Startseite aus")
+            logging.info(f"{now.strftime('%Y-%m-%d %H:%M:%S')} - Ende des Spiels von der Startseite aus")
+            sys.exit(0)
 
 
 class GamePage:
-    def __init__(self, root, spielername, roundfile, log_path, zeilen, spalten):
+    def __init__(self, root, spielername, roundfile, log_path, zeilen, spalten, titel):
         self.spielername = spielername
         self.roundfile = roundfile
         self.log_path = log_path
         self.zeilen = zeilen
         self.spalten = spalten
+        self.titel = titel
 
         self.buzzwords = self.read_buzzword(self.roundfile)
         self.used_buzzwords = set()
@@ -78,7 +81,7 @@ class GamePage:
         self.root = root
         window_width = spalten * 12 + 10  # Adjust width based on columns
         window_height = zeilen * 3 + 10   # Adjust height based on rows
-        self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(window_width, window_height), title="Buzzword Bingo :)", layout=TTkGridLayout())
+        self.window = TTkWindow(parent=self.root, pos=(1, 1), size=(window_width, window_height), title=self.titel, layout=TTkGridLayout())
 
         self.buttons = [[None for _ in range(self.spalten)] for _ in range(self.zeilen)]
 
@@ -166,7 +169,11 @@ class GamePage:
 
 def main():
     root = ttk.TTk()
-    StartPage(root)
+    if len(sys.argv) != 7:
+        print("Bitte geben Sie die notwendigen Argumente ein: [Spielername] [Pfad zur Buzzwords-Datei] [Log-Datei Speicherort] [Anzahl Zeilen] [Anzahl Spalten] [Titel]")
+        sys.exit(1)
+    titel = sys.argv[6]
+    StartPage(root, titel)
     root.mainloop()
 
 
