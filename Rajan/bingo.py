@@ -203,3 +203,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+#python3 bingo.py Rajan buzzwords.txt logs 5 5 "Rajans&Ritas Buzzword Bingo"
